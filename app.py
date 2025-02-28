@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, send_from_directory, render_template_string
 import os, requests
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, origins=["https://chat-profesor.onrender.com/"])  # Aquí pones la URL de tu servidor de alumno
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 

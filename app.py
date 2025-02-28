@@ -10,6 +10,13 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt'}
 
+upload_folder = 'uploads'
+if not os.path.exists(upload_folder):
+    os.makedirs(upload_folder, mode=0o777)  # Ajusta el valor mode según tus necesidades
+else:
+    os.chmod(upload_folder, 0o777)
+    
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -227,6 +234,9 @@ def recibir():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    # Verifica si la solicitud ya fue reenviada
+    is_forwarded = request.args.get('forwarded', 'false').lower() == 'true'
+    
     if 'file' not in request.files:
         return jsonify({"error": "No file provided"}), 400
     file = request.files['file']
@@ -238,14 +248,20 @@ def upload():
         file.save(file_path)
         file_link = "<a href='/uploads/{}' target='_blank'>{}</a>".format(filename, filename)
         mensajes.append("Yo (Profesor): Archivo: " + file_link)
-        # Reenviar archivo al servidor Alumno
-        with open(file_path, 'rb') as f:
-            files = {'file': (filename, f, file.content_type)}
-            try:
-                r = requests.post(TARGET_PROFESOR_URL + "/upload?forwarded=true", files=files)
-                print("Respuesta upload en Alumno:", r.text)
-            except Exception as e:
-                print("Error al reenviar archivo:", e)
+        
+        # Reenviar solo si no es una solicitud ya reenviada
+        if not is_forwarded:
+            with open(file_path, 'rb') as f:
+                files = {'file': (filename, f, file.content_type)}
+                try:
+                    r = requests.post(
+                        TARGET_ALUMNO_URL + "/upload?forwarded=true",
+                        files=files,
+                        timeout=5  # Timeout para evitar bloqueos prolongados
+                    )
+                    print("Respuesta upload en Alumno:", r.text)
+                except Exception as e:
+                    print("Error al reenviar archivo:", e)
         return jsonify(ok=True)
     else:
         return jsonify({"error": "File type not allowed"}), 400

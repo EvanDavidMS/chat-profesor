@@ -14,7 +14,7 @@ def allowed_file(filename):
 mensajes = []
 
 # URL pública del servidor Alumno (configurada mediante variable de entorno)
-TARGET_ALUMNO_URL = os.environ.get("TARGET_ALUMNO_URL", "http://127.0.0.1:5000")
+TARGET_PROFESOR_URL = os.environ.get("TARGET_PROFESOR_URL", "https://chat-alumno.onrender.com/")
 
 @app.route('/')
 def index():

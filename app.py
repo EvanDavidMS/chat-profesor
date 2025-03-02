@@ -131,6 +131,19 @@ def index():
              font-size: 20px;
              margin: 0 5px;
          }
+         /* Botón para borrar la conversación, fijo en la esquina inferior derecha */
+         #clear-chat {
+             position: fixed;
+             bottom: 20px;
+             right: 20px;
+             background: red;
+             color: white;
+             border: none;
+             border-radius: 5px;
+             padding: 10px;
+             cursor: pointer;
+             z-index: 1000;
+         }
       </style>
     </head>
     <body>
@@ -160,6 +173,8 @@ def index():
           <button onclick="enviarArchivo()">Enviar Archivo</button>
         </div>
       </div>
+      <!-- Botón para borrar el chat -->
+      <button id="clear-chat" onclick="clearChat()">🗑 Borrar Conversación</button>
       <script>
          function enviarMensaje(){
              var msg = $("#mensaje").val();
@@ -206,6 +221,11 @@ def index():
          }
          function insertEmoji(emoji){
              $("#mensaje").val($("#mensaje").val() + emoji);
+         }
+         function clearChat(){
+             $.post("/clear", function(data){
+                 $("#chat").html("");
+             });
          }
          $(document).ready(function(){
              $("#mensaje").keypress(function(e) {
@@ -312,6 +332,14 @@ def get_logs():
     except Exception as e:
         logging.error("Error al leer logs: %s", e)
         return jsonify({"error": "No se pudieron leer los logs", "details": str(e)}), 500
+
+# Nuevo endpoint para borrar la conversación
+@app.route('/clear', methods=['POST'])
+def clear():
+    global mensajes
+    mensajes = []
+    logging.info("Conversación borrada")
+    return jsonify({"ok": True})
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):

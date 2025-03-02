@@ -3,3 +3,4 @@ requests==2.28.2
 Werkzeug==2.2.3
 gunicorn
 Flask-CORS
+psutil
